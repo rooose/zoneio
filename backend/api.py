@@ -11,7 +11,7 @@ app.config["DEBUG"] = True
 
 @app.route('/', methods=['GET'])
 def hello_world():
-    return 'Hello, World!'
+    return 'This is the paperio development server :)'
 
 
 # POST
@@ -49,7 +49,6 @@ def login():
     if error is None:
         session.clear()
         session['user_id'] = user['id']
-        return redirect(url_for('index'))
 
     return 'Login endpoint', status.HTTP_200_OK
 
