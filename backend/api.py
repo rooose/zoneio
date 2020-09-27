@@ -4,6 +4,7 @@ from flask_sqlalchemy import SQLAlchemy
 from werkzeug.security import generate_password_hash, check_password_hash
 import datetime
 from functools import wraps
+from geoalchemy import WKTSpatialElement
 import jwt
 import uuid
 import os
@@ -93,7 +94,9 @@ def login_user():
 @token_required
 def create_coords(current_user):
     data = request.get_json()
-    new_coords = Coordinates(user_id=current_user.id, latitude=data['x'], longitude=data['y'], timestamp=data['timestamp'])
+
+    point = f"POINT({data["latitude"]} {data["longitude"]})"
+    new_coords = Coordinates(user_id=current_user.id, coord=WKTSpatialElement(point))
     db.session.add(new_coords)
     db.session.commit()
 

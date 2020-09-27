@@ -1,5 +1,7 @@
 from app import db
 from sqlalchemy.dialects.postgresql import JSON
+from geoalchemy import *
+from geoalchemy.postgis import PGComparator
 import datetime
 
 
@@ -8,8 +10,7 @@ class Coordinate(db.Model):
     
     id = db.Column(db.Integer, primary_key=True)
     user_id = db.Column(db.Integer, ForeignKey('user.id'))
-    latitude = db.Column(db.Float, nullable=False))
-    longitude = db.Column(db.Float, nullable=False))
+    coord = GeometryColumn(Point(2), comparator=PGComparator)
     timestamp = db.Column(db.DateTime, nullable=False, default=datetime.datetime.now)
 
     def __init__(self, user_id, latitude, longitude):
