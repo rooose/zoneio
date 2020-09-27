@@ -20,7 +20,7 @@ class RequestHandler: AsyncTask<Map<String, Any>, Void, String>() {
             }
             val body: RequestBody = formBody.build();
             val request: Request = Request.Builder()
-                .url("http://localhost:5000/$endpoint")
+                .url("http://192.168.0.110:5000/$endpoint")
                 .post(body)
                 .build()
             val response: Response = client.newCall(request).execute()
@@ -31,8 +31,9 @@ class RequestHandler: AsyncTask<Map<String, Any>, Void, String>() {
     }
 
     protected override fun doInBackground(vararg params: Map<String, Any>): String? {
+        Log.d("DEBUG", params.toString())
         val endpoint: String = params[0]["endpoint"] as String;
-        val requestParams: Any = params[0]["params"] ?: error("Missing parameters");
+        val requestParams: Any = params[0]["parameters"] ?: error("Missing parameters");
         return sendData(endpoint, requestParams as Map<String, Any>)
     }
 

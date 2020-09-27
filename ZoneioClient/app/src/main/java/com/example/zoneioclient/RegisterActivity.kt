@@ -7,6 +7,9 @@ import kotlinx.android.synthetic.main.activity_register.*
 import kotlinx.android.synthetic.main.fragment_login.*
 
 class RegisterActivity : AppCompatActivity() {
+
+    private val requestHandler: RequestHandler = RequestHandler()
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_register)
@@ -20,7 +23,7 @@ class RegisterActivity : AppCompatActivity() {
 
         val parameters = mapOf("username" to username, "password" to password)
         val request = mapOf("endpoint" to "/register", "parameters" to parameters)
-        val response = RequestHandler().execute(request)
+        val response = requestHandler.execute(request)
         goToMainActivity(username)
 
     }

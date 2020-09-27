@@ -7,6 +7,8 @@ import kotlinx.android.synthetic.main.fragment_login.*
 
 class LoginActivity : AppCompatActivity() {
 
+    private val requestHandler: RequestHandler = RequestHandler()
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.fragment_login)
@@ -21,7 +23,7 @@ class LoginActivity : AppCompatActivity() {
 
         val parameters = mapOf("username" to username, "password" to password)
         val request = mapOf("endpoint" to "/login", "parameters" to parameters)
-        val response = RequestHandler().execute(request)
+        val response = requestHandler.execute(request)
         goToMainActivity(username)
     }
 
