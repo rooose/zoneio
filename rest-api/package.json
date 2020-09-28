@@ -1,0 +1,20 @@
+{
+  "name": "zoneio",
+  "version": "1.0.0",
+  "description": "The REST API for the zone.io game",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "test": "standard"
+  },
+  "author": "Rose Hirigoyen",
+  "license": "ISC",
+  "dependencies": {
+    "express": "^4.17.1",
+    "jsonwebtoken": "^8.5.1",
+    "md5": "^2.3.0",
+    "sqlite3": "^5.0.0",
+    "standard": "^14.3.4",
+    "util": "^0.12.3"
+  }
+}
