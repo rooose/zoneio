@@ -7,6 +7,7 @@ import android.os.Handler
 import android.os.Looper
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
+import kotlinx.android.synthetic.main.activity_register.*
 import kotlinx.android.synthetic.main.fragment_login.*
 import okhttp3.*
 import org.json.JSONObject
@@ -22,6 +23,9 @@ class LoginActivity : AppCompatActivity() {
 
         registerBtn.setOnClickListener { goToRegisterActivity() }
         loginButton.setOnClickListener { login() }
+
+        val username = intent.getStringExtra("username")
+        if (!username.isNullOrEmpty()) { username_input.setText(username) }
     }
 
     private fun login() {
@@ -59,7 +63,6 @@ class LoginActivity : AppCompatActivity() {
                     backgroundThreadShortToast(applicationContext, "Successfuly logged in!")
                     goToMainActivity(username, body["token"] as String)
                 } else {
-                    val body = JSONObject(response.body!!.string())
                     backgroundThreadShortToast(applicationContext, body["error"] as String)
                 }
             }

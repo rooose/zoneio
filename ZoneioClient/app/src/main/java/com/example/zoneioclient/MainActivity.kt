@@ -2,11 +2,16 @@ package com.example.zoneioclient
 
 import android.Manifest
 import android.app.AlertDialog
+import android.content.Context
+import android.content.Intent
 import android.content.pm.PackageManager
 import android.graphics.Color
 import android.location.Location
 import android.os.Bundle
+import android.os.Handler
+import android.os.Looper
 import android.util.Log
+import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
@@ -14,14 +19,19 @@ import com.google.android.gms.common.api.ResolvableApiException
 import com.google.android.gms.location.*
 import com.google.android.gms.tasks.RuntimeExecutionException
 import kotlinx.android.synthetic.main.activity_main.*
+import kotlinx.android.synthetic.main.activity_register.*
+import okhttp3.*
+import org.json.JSONObject
+import java.io.IOException
 import java.sql.Date
 import java.text.SimpleDateFormat
 import java.util.*
 
 
 class MainActivity : AppCompatActivity() {
-    private val requestHandler: RequestHandler = RequestHandler()
+    private val client = OkHttpClient()
     private var username: String = "";
+    private var authToken: String = "";
     private var fusedLocationClient: FusedLocationProviderClient? = null
     private val PERMISSION_ID = 42
     private val reqSetting: LocationRequest = LocationRequest.create().apply {
@@ -37,31 +47,46 @@ class MainActivity : AppCompatActivity() {
 
     private val locationUpdates = object : LocationCallback() {
         override fun onLocationResult(lr: LocationResult) {
-            Log.e("LOG", lr.toString())
-            Log.e("LOG", "Newest Location: " + lr.locations.last())
 
-            val parameters = mapOf("user_id" to username, "x" to lr.locations.last().latitude, "y" to lr.locations.last().longitude, "timestamp" to getDateTime())
-            val request = mapOf("endpoint" to "/coordinates", "parameters" to parameters)
-            val response = requestHandler.execute(request)
+            val formBody: RequestBody = FormBody.Builder()
+                .add("latitude", lr.locations.last().latitude.toString())
+                .add("longitude", lr.locations.last().longitude.toString())
+                .build()
+
+            val request: Request = Request.Builder()
+                .addHeader("x-access-token", authToken)
+                .url("http://192.168.0.110:8000/api/coordinates/")
+                .post(formBody)
+                .build()
+
+            client.newCall(request).enqueue(object : Callback {
+                override fun onFailure(call: Call, e: IOException) {
+                    backgroundThreadShortToast(applicationContext, "An error happened: ${e.message}")
+                }
+
+                override fun onResponse(call: Call, response: Response) {
+                    val body = JSONObject(response.body!!.string())
+                    if(response.isSuccessful) {
+                        backgroundThreadShortToast(applicationContext, "Sent coordinates!")
+                    } else {
+                        backgroundThreadShortToast(applicationContext, body["error"] as String)
+                        goToLoginActivity(username)
+                    }
+                }
+            })
         }
     }
 
     private var isCapturing = false
-
-    private fun getDateTime(): String? {
-        val dateFormat = SimpleDateFormat(
-            "yyyy-MM-dd HH:mm:ss", Locale.getDefault()
-        )
-        val date = Date()
-        return dateFormat.format(date)
-    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
         fusedLocationClient = LocationServices.getFusedLocationProviderClient(this)
         username = intent.getStringExtra("username")
+        authToken = intent.getStringExtra("token")
         val client = LocationServices.getSettingsClient(this)
+
         client.checkLocationSettings(builder.build()).addOnCompleteListener { task ->
             try {
                 val state: LocationSettingsStates = task.result.locationSettingsStates
@@ -173,4 +198,20 @@ class MainActivity : AppCompatActivity() {
             button.text = "CLICK TO START CAPTURE"
         }
     }
+
+    fun backgroundThreadShortToast(context: Context?, msg: String?) {
+        if (context != null && msg != null) {
+            Handler(Looper.getMainLooper()).post(Runnable {
+                Toast.makeText(context, msg, Toast.LENGTH_SHORT).show()
+            })
+        }
+    }
+
+    private fun goToLoginActivity(username: String) {
+        val intent = Intent(this, LoginActivity::class.java).apply {
+            putExtra("username", username)
+        }
+        startActivity(intent)
+    }
+
 }

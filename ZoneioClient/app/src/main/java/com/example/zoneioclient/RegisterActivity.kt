@@ -23,7 +23,7 @@ class RegisterActivity : AppCompatActivity() {
         registerButton.setOnClickListener { register() }
 
         val username = intent.getStringExtra("username")
-        register_username_input.setText(username)
+        if(!username.isNullOrEmpty()) { register_username_input.setText(username) }
     }
 
     private fun register() {

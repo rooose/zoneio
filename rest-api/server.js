@@ -25,16 +25,21 @@ app.get("/", (req, res, next) => {
 
 app.post("/api/coordinates/", (req, res, next) => {
     var errors = []
-    console.log(req.body)
+
     if (!req.body.latitude) {
         errors.push("No latitude provided");
     }
     if (!req.body.longitude) {
         errors.push("No longitude provided");
     }
-    if (!/^[0-9.,]+$/i.test(req.body.longitude) || !/^[0-9.,]+$/i.test(req.body.latitude)) {
+
+    var longitude = parseFloat(req.body.longitude)
+    var latitude = parseFloat(req.body.latitude)
+
+    if (Number.isNaN(longitude) || Number.isNaN(latitude)) {
         errors.push("Latitude or Longitude contain invalid characters");
     }
+
     if (errors.length) {
         res.status(400).json({ "error": errors.join(",") });
         return;
