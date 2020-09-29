@@ -23,7 +23,52 @@ app.get("/", (req, res, next) => {
     res.json({ "message": "Ok" })
 });
 
-// Insert here other API endpoints
+app.post("/api/coordinates/", (req, res, next) => {
+    var errors = []
+    console.log(req.body)
+    if (!req.body.latitude) {
+        errors.push("No latitude provided");
+    }
+    if (!req.body.longitude) {
+        errors.push("No longitude provided");
+    }
+    if (!/^[0-9.,]+$/i.test(req.body.longitude) || !/^[0-9.,]+$/i.test(req.body.latitude)) {
+        errors.push("Latitude or Longitude contain invalid characters");
+    }
+    if (errors.length) {
+        res.status(400).json({ "error": errors.join(",") });
+        return;
+    }
+
+    var token = req.headers['x-access-token'];
+    if (!token) return res.status(401).send({ auth: false, message: 'No token provided.' });
+
+    jwt.verify(token, config.secret, (err, decoded) => {
+        if (err) { return res.status(500).send({ auth: false, message: 'Failed to authenticate token.' }) }
+
+        var data = {
+            user_id: decoded.id,
+            latitude: req.body.latitude,
+            longitude: req.body.longitude
+        }
+
+        var sql = 'INSERT INTO coordinate (user_id, latitude, longitude) VALUES (?,?,?)'
+        var params = [data.user_id, data.latitude, data.longitude]
+
+        db.run(sql, params, function (err, result) {
+            if (err) {
+                res.status(400).json({ "error": err.message })
+                return;
+            }
+            res.status(200).json({
+                "message": "Coordinates added successfully"
+            });
+            return;
+        });
+    });
+});
+
+
 app.post("/api/register/", (req, res, next) => {
     var errors = []
 
@@ -36,7 +81,7 @@ app.post("/api/register/", (req, res, next) => {
         errors.push("Username contains invalid characters");
     }
     if (errors.length) {
-        res.status(400).json({ "error": errors.join(",") });
+        res.status(400).json({ "error": errors.join("\n") });
         return;
     }
 
@@ -67,6 +112,7 @@ app.post("/api/register/", (req, res, next) => {
                     return;
                 }
 
+                console.log("REGISTERED USER: ", data.username)
                 res.json({
                     "message": "User successfully registered."
                 });
@@ -119,52 +165,6 @@ app.post("/api/login/", (req, res, next) => {
             return;
         }
     })
-});
-
-
-app.post("/api/coordinates/", (req, res, next) => {
-    var errors = []
-    console.log(req.body)
-    if (!req.body.latitude) {
-        errors.push("No latitude provided");
-    }
-    if (!req.body.longitude) {
-        errors.push("No longitude provided");
-    }
-    if (!/^[0-9.,]+$/i.test(req.body.longitude) || !/^[0-9.,]+$/i.test(req.body.latitude)) {
-        errors.push("Latitude or Longitude contain invalid characters");
-    }
-    if (errors.length) {
-        res.status(400).json({ "error": errors.join(",") });
-        return;
-    }
-
-    var token = req.headers['x-access-token'];
-    if (!token) return res.status(401).send({ auth: false, message: 'No token provided.' });
-
-    jwt.verify(token, config.secret, (err, decoded) => {
-        if (err) { return res.status(500).send({ auth: false, message: 'Failed to authenticate token.' }) }
-
-        var data = {
-            user_id: decoded.id,
-            latitude: req.body.latitude,
-            longitude: req.body.longitude
-        }
-
-        var sql = 'INSERT INTO coordinate (user_id, latitude, longitude) VALUES (?,?,?)'
-        var params = [data.user_id, data.latitude, data.longitude]
-
-        db.run(sql, params, function (err, result) {
-            if (err) {
-                res.status(400).json({ "error": err.message })
-                return;
-            }
-            res.status(200).json({
-                "message": "Coordinates added successfully"
-            });
-            return;
-        });
-    });
 });
 
 // Default response for any other request
